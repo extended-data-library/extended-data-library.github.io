@@ -12,28 +12,36 @@ export default defineConfig({
 			social: {
 				github: 'https://github.com/jbcom',
 			},
-			sidebar: [
-				{
-					label: 'Getting Started',
-					items: [{ label: 'Guide', slug: 'getting-started' }],
-				},
-				{
-					label: 'Vendor Connectors API',
-					autogenerate: { directory: 'api' },
-				},
-				{
-					label: 'Usage',
-					autogenerate: { directory: 'usage' },
-				},
-				{
-					label: 'Core',
-					autogenerate: { directory: 'core' },
-				},
-				{
-					label: 'Packages',
-					autogenerate: { directory: 'packages' },
-				},
-			],
+    sidebar: [
+      {
+        label: 'Getting Started',
+        items: [{ label: 'Guide', slug: 'getting-started' }],
+      },
+      {
+        label: 'Vendor Connectors API',
+        autogenerate: { directory: 'api' },
+      },
+      {
+        label: 'Usage',
+        autogenerate: { directory: 'usage' },
+      },
+      {
+        label: 'Core',
+        autogenerate: { directory: 'core' },
+      },
+      {
+        label: 'Packages',
+        autogenerate: { directory: 'packages' },
+      },
+      {
+        label: 'Enterprise',
+        items: [
+          { label: 'jbcom Hub', link: 'https://jbcom.github.io' },
+          { label: 'Agentic (AI)', link: 'https://agentic.dev' },
+          { label: 'Strata (Games)', link: 'https://strata.game' },
+        ],
+      },
+    ],
 		}),
 	],
 });
