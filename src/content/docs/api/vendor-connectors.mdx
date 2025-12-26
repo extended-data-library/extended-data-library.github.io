@@ -1,5 +1,575 @@
 ---
-title: Vendor Connectors API
+title: Vendor Connectors
+description: Universal vendor connectors for AWS, GCP, GitHub, Slack, AI APIs, and more
 ---
 
-This section contains the API documentation for the Vendor Connectors.
+import { Tabs, TabItem, Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
+
+**Vendor Connectors** (`vendor-connectors`) provides universal connectors for cloud providers, third-party services, and AI APIs. Each connector offers three interfaces: Direct Python API, LangChain Tools, and MCP Server.
+
+```bash
+pip install vendor-connectors
+```
+
+[![PyPI](https://img.shields.io/pypi/v/vendor-connectors.svg)](https://pypi.org/project/vendor-connectors/)
+[![Python](https://img.shields.io/pypi/pyversions/vendor-connectors.svg)](https://pypi.org/project/vendor-connectors/)
+[![CI](https://github.com/extended-data-library/vendor-connectors/workflows/CI/badge.svg)](https://github.com/extended-data-library/vendor-connectors/actions)
+
+---
+
+## Available Connectors
+
+<CardGrid>
+  <Card title="Cloud Providers" icon="cloud">
+    - **AWS** — S3, Organizations, IAM with role assumption
+    - **Google Cloud** — Workspace and GCP APIs
+  </Card>
+  <Card title="Services" icon="rocket">
+    - **GitHub** — Repos, GraphQL, file operations
+    - **Slack** — Bot and app integrations
+    - **Vault** — HashiCorp Vault (Token/AppRole)
+    - **Zoom** — Meetings and users
+  </Card>
+  <Card title="AI / Agents" icon="star">
+    - **Anthropic** — Claude API
+    - **Cursor** — Background Agents
+    - **Meshy** — AI 3D generation
+  </Card>
+  <Card title="Three Interfaces" icon="setting">
+    - Direct Python API
+    - LangChain StructuredTools
+    - MCP Server
+  </Card>
+</CardGrid>
+
+---
+
+## Installation
+
+<Tabs>
+  <TabItem label="Basic">
+    ```bash
+    pip install vendor-connectors
+    ```
+    Includes `langchain-core` for standard tool definitions.
+  </TabItem>
+  <TabItem label="With Extras">
+    ```bash
+    # AWS support
+    pip install vendor-connectors[aws]
+
+    # Meshy AI 3D generation
+    pip install vendor-connectors[meshy]
+
+    # MCP server support
+    pip install vendor-connectors[mcp]
+
+    # Webhooks
+    pip install vendor-connectors[webhooks]
+
+    # Everything
+    pip install vendor-connectors[all]
+    ```
+  </TabItem>
+  <TabItem label="LLM Provider">
+    ```bash
+    # Choose your LLM provider separately
+    pip install langchain-anthropic    # Claude
+    pip install langchain-openai       # GPT
+    pip install langchain-google-genai # Gemini
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Quick Start
+
+### VendorConnectors (Unified Access)
+
+```python
+from vendor_connectors import VendorConnectors
+
+# Initialize once - reads credentials from environment
+vc = VendorConnectors()
+
+# Cloud providers
+s3 = vc.get_aws_client("s3")
+google = vc.get_google_client()
+
+# Services
+github = vc.get_github_client(github_owner="myorg")
+slack = vc.get_slack_client()
+vault = vc.get_vault_client()
+zoom = vc.get_zoom_client()
+
+# AI/Agent connectors
+anthropic = vc.get_anthropic_client()
+cursor = vc.get_cursor_client()
+```
+
+### Individual Connectors
+
+```python
+from vendor_connectors import (
+    AWSConnector,
+    GithubConnector,
+    SlackConnector,
+    AnthropicConnector,
+    CursorConnector,
+)
+
+# AWS with role assumption
+aws = AWSConnector(execution_role_arn="arn:aws:iam::123456789012:role/MyRole")
+s3 = aws.get_aws_client("s3")
+
+# GitHub operations
+github = GithubConnector(
+    github_owner="myorg",
+    github_repo="myrepo",
+    # Token loaded from GITHUB_TOKEN if not provided
+)
+
+# Slack messaging
+slack = SlackConnector()  # Uses SLACK_TOKEN, SLACK_BOT_TOKEN
+slack.send_message("general", "Hello from vendor-connectors!")
+```
+
+---
+
+## Three Interfaces Pattern
+
+Every connector provides three interfaces:
+
+```python
+# 1. Direct Python API
+from vendor_connectors.{connector} import {functionality}
+
+# 2. LangChain Tools (works with CrewAI, LangGraph, etc.)
+from vendor_connectors.{connector}.tools import get_tools
+
+# 3. MCP Server
+from vendor_connectors.{connector}.mcp import run_server
+# or command line: {connector}-mcp
+```
+
+---
+
+## Connector Details
+
+### AWS Connector
+
+```python
+from vendor_connectors import AWSConnector, AWSConnectorFull
+
+# Basic connector - session management
+connector = AWSConnector()
+print(f"Session: {connector.session}")
+
+# Full connector with all operations
+full = AWSConnectorFull()
+
+# List S3 buckets
+buckets = full.list_buckets()
+for bucket in buckets[:5]:
+    print(f"  - {bucket['Name']}")
+
+# List organization accounts
+accounts = full.get_accounts()
+for account in accounts:
+    print(f"  - {account['Name']} ({account['Id']})")
+```
+
+**Role Assumption:**
+
+```python
+from vendor_connectors import AWSConnector
+
+# Assume a role for cross-account access
+aws = AWSConnector(
+    execution_role_arn="arn:aws:iam::123456789012:role/CrossAccountRole"
+)
+s3 = aws.get_aws_client("s3")
+```
+
+**Environment Variables:**
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_DEFAULT_REGION`
+- `EXECUTION_ROLE_ARN`
+
+---
+
+### GitHub Connector
+
+```python
+from vendor_connectors import GithubConnector
+
+github = GithubConnector(
+    github_owner="extended-data-library",
+    github_repo="core",
+    # Uses GITHUB_TOKEN from environment
+)
+
+# Get repository info
+repo = github.get_repository()
+print(f"Stars: {repo['stargazers_count']}")
+
+# List files in a directory
+files = github.list_files(path="src")
+
+# Read file contents
+content = github.get_file_contents("README.md")
+
+# GraphQL queries
+query = """
+query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    issues(first: 5) {
+      nodes { title }
+    }
+  }
+}
+"""
+result = github.graphql(query)
+```
+
+**Environment Variables:**
+- `GITHUB_TOKEN`
+- `GITHUB_OWNER`
+
+---
+
+### Anthropic Connector
+
+```python
+from vendor_connectors import AnthropicConnector
+
+claude = AnthropicConnector()  # Uses ANTHROPIC_API_KEY
+
+# Create a message
+response = claude.create_message(
+    model="claude-sonnet-4-5-20250929",
+    max_tokens=1024,
+    messages=[
+        {"role": "user", "content": "Explain quantum computing in simple terms"}
+    ]
+)
+print(response.text)
+
+# Count tokens before sending
+tokens = claude.count_tokens(
+    model="claude-sonnet-4-5-20250929",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+print(f"Input tokens: {tokens}")
+
+# Get recommended model for use case
+model = claude.get_recommended_model("coding")
+print(f"Recommended: {model}")  # claude-sonnet-4-5-20250929
+```
+
+**Environment Variables:**
+- `ANTHROPIC_API_KEY`
+
+---
+
+### Cursor Connector
+
+Manage Cursor Background Agents programmatically:
+
+```python
+from vendor_connectors import CursorConnector
+
+cursor = CursorConnector()  # Uses CURSOR_API_KEY
+
+# List all agents
+agents = cursor.list_agents()
+for agent in agents:
+    print(f"{agent.id}: {agent.state}")
+
+# Launch a new agent
+agent = cursor.launch_agent(
+    prompt_text="Implement user authentication with OAuth2",
+    repository="myorg/myrepo",
+    ref="main",
+    auto_create_pr=True,
+)
+print(f"Launched: {agent.id}")
+
+# Check status
+status = cursor.get_agent_status(agent.id)
+print(f"State: {status.state}")
+
+# Send follow-up
+cursor.add_followup(agent.id, "Also add rate limiting")
+
+# List available repositories
+repos = cursor.list_repositories()
+```
+
+**Environment Variables:**
+- `CURSOR_API_KEY`
+
+---
+
+### Meshy AI Connector
+
+AI-powered 3D asset generation with three interfaces:
+
+#### Direct Python API
+
+```python
+from vendor_connectors import meshy
+
+# Generate a 3D model from text
+model = meshy.text3d.generate("a medieval sword with ornate handle")
+print(model.model_urls.glb)
+
+# Rig for animation
+rigged = meshy.rigging.rig(model.id)
+
+# Apply animation (678 available)
+animated = meshy.animate.apply(rigged.id, animation_id=0)  # Idle
+
+# Retexture
+gold_sword = meshy.retexture.apply(model.id, "golden with embedded gems")
+```
+
+#### LangChain Tools
+
+```python
+from vendor_connectors.meshy.tools import get_tools
+from langchain_anthropic import ChatAnthropic
+from langgraph.prebuilt import create_react_agent
+
+# Get Meshy tools (standard LangChain StructuredTools)
+tools = get_tools()
+print(f"Available: {[t.name for t in tools]}")
+
+# Create agent
+llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+agent = create_react_agent(llm, tools)
+
+# Use the agent
+result = agent.invoke({
+    "messages": [("user", "Generate a 3D model of a futuristic spaceship")]
+})
+```
+
+<Aside type="tip">
+LangChain StructuredTools work with CrewAI, LangGraph, and any framework that accepts LangChain tools.
+</Aside>
+
+#### MCP Server
+
+```python
+# Run programmatically
+from vendor_connectors.meshy.mcp import run_server
+run_server()
+
+# Or via command line
+# $ meshy-mcp
+```
+
+**Claude Desktop Configuration:**
+
+```json
+{
+  "mcpServers": {
+    "meshy": {
+      "command": "meshy-mcp",
+      "env": {
+        "MESHY_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+**Environment Variables:**
+- `MESHY_API_KEY`
+
+---
+
+### Slack Connector
+
+```python
+from vendor_connectors import SlackConnector
+
+slack = SlackConnector()  # Uses SLACK_TOKEN, SLACK_BOT_TOKEN
+
+# Send a message
+slack.send_message("general", "Hello from vendor-connectors!")
+
+# Send with blocks
+blocks = [
+    {
+        "type": "section",
+        "text": {"type": "mrkdwn", "text": "*Hello!* :wave:"}
+    }
+]
+slack.send_message("general", "Formatted message", blocks=blocks)
+```
+
+**Environment Variables:**
+- `SLACK_TOKEN`
+- `SLACK_BOT_TOKEN`
+
+---
+
+### Vault Connector
+
+```python
+from vendor_connectors import VaultConnector
+
+# Token auth
+vault = VaultConnector()  # Uses VAULT_ADDR, VAULT_TOKEN
+
+# AppRole auth
+vault = VaultConnector(
+    vault_addr="https://vault.example.com",
+    vault_role_id="role-id",
+    vault_secret_id="secret-id",
+)
+
+# Read secrets
+secret = vault.read_secret("secret/data/myapp")
+print(secret["data"]["password"])
+
+# Write secrets
+vault.write_secret("secret/data/myapp", {"password": "new-value"})
+```
+
+**Environment Variables:**
+- `VAULT_ADDR`
+- `VAULT_TOKEN`
+- `VAULT_ROLE_ID`
+- `VAULT_SECRET_ID`
+
+---
+
+### Zoom Connector
+
+```python
+from vendor_connectors import ZoomConnector
+
+zoom = ZoomConnector()  # Uses ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_ACCOUNT_ID
+
+# List meetings
+meetings = zoom.list_meetings()
+
+# Create meeting
+meeting = zoom.create_meeting(
+    topic="Team Standup",
+    start_time="2024-01-15T10:00:00Z",
+    duration=30,
+)
+print(f"Join URL: {meeting['join_url']}")
+
+# List users
+users = zoom.list_users()
+```
+
+**Environment Variables:**
+- `ZOOM_CLIENT_ID`
+- `ZOOM_CLIENT_SECRET`
+- `ZOOM_ACCOUNT_ID`
+
+---
+
+## Architecture
+
+All connectors extend `DirectedInputsClass`, providing:
+
+### Transparent Secret Management
+
+Credentials are loaded automatically from multiple sources (priority order):
+
+<Steps>
+
+1. **Direct parameters** — Pass to constructor
+2. **Environment variables** — Standard naming conventions
+3. **Configuration files** — YAML, JSON, or INI
+4. **stdin** — Interactive prompts when needed
+
+</Steps>
+
+```python
+# All equivalent - credentials loaded transparently
+from vendor_connectors import GithubConnector
+
+# Option 1: Environment variable
+# export GITHUB_TOKEN="your-token"
+github = GithubConnector(github_owner="myorg")
+
+# Option 2: Direct parameter
+github = GithubConnector(
+    github_owner="myorg",
+    github_token="your-token"
+)
+
+# Option 3: Works across all interfaces
+from vendor_connectors.meshy.tools import get_tools
+# export MESHY_API_KEY="your-key"
+tools = get_tools()  # Automatically uses environment
+```
+
+### Client Caching
+
+`VendorConnectors` caches clients by parameters:
+
+```python
+from vendor_connectors import VendorConnectors
+
+vc = VendorConnectors()
+
+# Same parameters = same instance (cached)
+github1 = vc.get_github_client(github_owner="myorg")
+github2 = vc.get_github_client(github_owner="myorg")
+assert github1 is github2
+
+# Different parameters = different instance
+github3 = vc.get_github_client(github_owner="otherorg")
+assert github1 is not github3
+```
+
+---
+
+## Environment Variables Reference
+
+| Variable | Connector | Description |
+|----------|-----------|-------------|
+| `ANTHROPIC_API_KEY` | Anthropic | Claude API key |
+| `CURSOR_API_KEY` | Cursor | Background Agent API key |
+| `AWS_ACCESS_KEY_ID` | AWS | AWS credentials |
+| `AWS_SECRET_ACCESS_KEY` | AWS | AWS credentials |
+| `AWS_DEFAULT_REGION` | AWS | Default region |
+| `EXECUTION_ROLE_ARN` | AWS | Role to assume |
+| `GITHUB_TOKEN` | GitHub | Personal access token |
+| `GITHUB_OWNER` | GitHub | Organization/user |
+| `GOOGLE_SERVICE_ACCOUNT` | Google | Service account JSON |
+| `SLACK_TOKEN` | Slack | User token |
+| `SLACK_BOT_TOKEN` | Slack | Bot token |
+| `VAULT_ADDR` | Vault | Server URL |
+| `VAULT_TOKEN` | Vault | Auth token |
+| `VAULT_ROLE_ID` | Vault | AppRole role ID |
+| `VAULT_SECRET_ID` | Vault | AppRole secret ID |
+| `ZOOM_CLIENT_ID` | Zoom | OAuth client ID |
+| `ZOOM_CLIENT_SECRET` | Zoom | OAuth client secret |
+| `ZOOM_ACCOUNT_ID` | Zoom | Account ID |
+| `MESHY_API_KEY` | Meshy | Meshy AI API key |
+
+---
+
+## See Also
+
+- [GitHub Repository](https://github.com/extended-data-library/vendor-connectors)
+- [PyPI Package](https://pypi.org/project/vendor-connectors/)
+- [Changelog](https://github.com/extended-data-library/vendor-connectors/blob/main/CHANGELOG.md)
+
+### Related jbcom Packages
+
+- [extended-data-types](https://pypi.org/project/extended-data-types/) — Foundation utilities
+- [lifecyclelogging](https://pypi.org/project/lifecyclelogging/) — Structured logging
+- [directed-inputs-class](https://pypi.org/project/directed-inputs-class/) — Input handling
