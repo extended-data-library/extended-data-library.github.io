@@ -14,9 +14,9 @@ export default defineConfig({
         src: './src/assets/houston.webp',
         alt: 'Extended Data',
       },
-      social: {
-        github: 'https://github.com/extended-data-library',
-      },
+      social: [
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/extended-data-library' },
+      ],
       head: [
         {
           tag: 'meta',
