@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://extendeddata.dev',
+  site: 'https://extended-data-library.github.io',
   integrations: [
     starlight({
       title: 'Extended Data',
