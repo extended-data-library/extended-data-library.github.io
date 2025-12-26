@@ -9,13 +9,9 @@ export default defineConfig({
 			title: 'Extended Data',
 			tagline: 'Data infrastructure that scales',
 			customCss: ['./src/styles/custom.css'],
-			social: [
-				{
-					icon: 'github',
-					label: 'GitHub',
-					href: 'https://github.com/extended-data-library/extended-data-library.github.io',
-				},
-			],
+			social: {
+				github: 'https://github.com/jbcom',
+			},
 			sidebar: [
 				{
 					label: 'Getting Started',

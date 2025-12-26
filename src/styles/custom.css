@@ -1,5 +1,15 @@
+/* 
+  Extended Data Division - Custom Styles
+  Integrated with jbcom Enterprise Branding
+*/
+
+/* 1. Base Enterprise Theme */
+@import 'https://raw.githubusercontent.com/jbcom/jbcom.github.io/main/enterprise-branding/starlight-base.css';
+
+/* 2. Extended Data (Amber) Override */
+@import 'https://raw.githubusercontent.com/jbcom/jbcom.github.io/main/enterprise-branding/org-themes/extended-data.css';
+
+/* 3. Site-specific overrides */
 :root {
-	--sl-color-accent-low: #f59e0b20;
-	--sl-color-accent: #f59e0b;
-	--sl-color-accent-high: #f59e0b;
+  /* You can add site-specific variables here */
 }

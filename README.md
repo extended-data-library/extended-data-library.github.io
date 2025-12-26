@@ -1,12 +1,10 @@
-# Starlight Starter Kit: Basics
+# Extended Data Documentation
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+This is the official documentation site for Extended Data, the Infrastructure & Libs division of the [jbcom enterprise](https://jbcom.github.io).
 
-```
-npm create astro@latest -- --template starlight
-```
+## Enterprise Context
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+This documentation site is part of a coherent package of specialized tools, sharing a unified design system and interconnected with sibling organizations like [Agentic](https://agentic.dev) and [Strata](https://strata.game).
 
 ## 🚀 Project Structure
 
