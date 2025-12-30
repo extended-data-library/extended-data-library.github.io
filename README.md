@@ -1,47 +1,45 @@
-# Extended Data Documentation
+# Org-Specific Overrides
 
-This is the official documentation site for Extended Data, the Infrastructure & Libs division of the [jbcom enterprise](https://jbcom.github.io).
+Place files here to override enterprise defaults from jbcom/control-center.
 
-## Enterprise Context
-
-This documentation site is part of a coherent package of specialized tools, sharing a unified design system and interconnected with sibling organizations like [Agentic](https://agentic.dev) and [Strata](https://strata.game).
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## Directory Structure
 
 ```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+repository-files/
+├── always-sync/          # From enterprise (don't edit)
+├── initial-only/         # From enterprise (don't edit)  
+├── python/               # From enterprise (don't edit)
+├── nodejs/               # From enterprise (don't edit)
+├── go/                   # From enterprise (don't edit)
+├── rust/                 # From enterprise (don't edit)
+├── terraform/            # From enterprise (don't edit)
+└── org-overrides/        # YOUR ORG CUSTOMIZATIONS HERE
+    ├── .github/
+    │   └── workflows/    # Org-specific workflows
+    ├── .cursor/
+    │   └── rules/        # Org-specific Cursor rules
+    ├── CLAUDE.md         # Org-specific Claude instructions
+    └── AGENTS.md         # Org-specific agent instructions
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Merge Order
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+When syncing to repos, files are applied in this order:
+1. Enterprise `always-sync/` (base)
+2. Language-specific rules (python/, nodejs/, etc.)
+3. **Org overrides** (this directory - wins on conflicts)
+4. `initial-only/` (only if file doesn't exist)
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## Examples
 
-## 🧞 Commands
+### Override CI workflow for your org
+```bash
+cp repository-files/always-sync/.github/workflows/ci.yml \
+   repository-files/org-overrides/.github/workflows/ci.yml
+# Then edit ci.yml with org-specific changes
+```
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+### Add org-specific Cursor rule
+```bash
+echo "# My Org Rule" > repository-files/org-overrides/.cursor/rules/my-org.mdc
+```
