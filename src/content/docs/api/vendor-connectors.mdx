@@ -28,6 +28,7 @@ pip install vendor-connectors
     - **GitHub** — Repos, GraphQL, file operations
     - **Slack** — Bot and app integrations
     - **Vault** — HashiCorp Vault (Token/AppRole)
+    - **Secrets** — Enterprise secret synchronization (Vault to AWS)
     - **Zoom** — Meetings and users
   </Card>
   <Card title="AI / Agents" icon="star">
@@ -101,6 +102,7 @@ google = vc.get_google_client()
 github = vc.get_github_client(github_owner="myorg")
 slack = vc.get_slack_client()
 vault = vc.get_vault_client()
+secrets = vc.get_secrets_client()
 zoom = vc.get_zoom_client()
 
 # AI/Agent connectors
@@ -115,6 +117,7 @@ from vendor_connectors import (
     AWSConnector,
     GithubConnector,
     SlackConnector,
+    SecretsConnector,
     AnthropicConnector,
     CursorConnector,
 )
@@ -449,6 +452,31 @@ vault.write_secret("secret/data/myapp", {"password": "new-value"})
 
 ---
 
+### Secrets Connector
+
+Synchronize secrets from Vault to AWS with high performance. Built on the [SecretSync](/packages/secretssync) package:
+
+```python
+from vendor_connectors import SecretsConnector
+
+connector = SecretsConnector()
+
+# Validate configuration
+is_valid, message = connector.validate_config("pipeline.yaml")
+
+# Run a sync pipeline
+result = connector.run_pipeline("pipeline.yaml")
+if result.success:
+    print(f"Synced {result.secrets_processed} secrets in {result.duration_ms}ms")
+```
+
+**Environment Variables:**
+- `VAULT_ADDR`
+- `VAULT_TOKEN`
+- `AWS_DEFAULT_REGION`
+
+---
+
 ### Zoom Connector
 
 ```python
@@ -555,6 +583,7 @@ assert github1 is not github3
 | `VAULT_TOKEN` | Vault | Auth token |
 | `VAULT_ROLE_ID` | Vault | AppRole role ID |
 | `VAULT_SECRET_ID` | Vault | AppRole secret ID |
+| `SECRETS_CONFIG` | Secrets | Path to pipeline.yaml |
 | `ZOOM_CLIENT_ID` | Zoom | OAuth client ID |
 | `ZOOM_CLIENT_SECRET` | Zoom | OAuth client secret |
 | `ZOOM_ACCOUNT_ID` | Zoom | Account ID |
